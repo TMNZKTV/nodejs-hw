@@ -5,7 +5,7 @@ const phonePattern = /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/;
 const phonePatternError = "Please, check number format";
 
 module.exports = {
-  postContactValidation: (req, res, next) => {
+  addContactValidation: (req, res, next) => {
     // Объявляему схему валидации
     const schema = Joi.object({
       name: Joi.string().alphanum().min(3).max(30).required(),
@@ -28,7 +28,7 @@ module.exports = {
     next();
   },
 
-  putContactValidation: (req, res, next) => {
+  updateContactValidation: (req, res, next) => {
     // Объявляему схему валидации
     const schema = Joi.object({
       name: Joi.string().alphanum().min(3).max(20).optional(),
@@ -41,6 +41,7 @@ module.exports = {
         .min(5)
         .max(20)
         .optional(),
+      favorite: Joi.boolean().optional(),
     });
 
     // Проверяем данные клиента на валидацию
