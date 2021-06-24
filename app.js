@@ -1,15 +1,18 @@
 const express = require("express");
 const logger = require("morgan");
-const cors = require("cors");
-
-const { contactsRouter } = require("./routes/api/contactsRouter");
+require("dotenv").config();
 
 const app = express();
 
+const { contactsRouter } = require("./routes/api/contactsRouter");
+const { connectMongo } = require("./src/db/connection");
+
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
+const PORT = process.env.PORT || 8083;
+
 app.use(logger(formatsLogger));
-app.use(cors());
+
 app.use(express.json());
 
 app.use("/api/contacts", contactsRouter);
@@ -21,5 +24,22 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message });
 });
+
+const start = async () => {
+  try {
+    await connectMongo();
+
+    app.listen(PORT, (error) => {
+      if (error) {
+        console.log("Error at server launch: ", error);
+      }
+      console.log(`Database connection successfull!`);
+    });
+  } catch (error) {
+    console.error(`Failed to launch with error: ${error.message}`);
+    process.exit(1);
+  }
+};
+start();
 
 module.exports = app;

@@ -1,82 +1,97 @@
 const {
-  listContacts,
-  getById,
-  removeContact,
+  getContacts,
+  getContactById,
   addContact,
-  updateContact,
+  updateContactById,
+  updateContactStatusById,
+  deleteContactById,
 } = require("../services/contactsServices");
 
-const getContacts = async (req, res) => {
+const getContactsController = async (req, res) => {
   try {
-    const contacts = await listContacts();
-    res.status(200).json({ contacts });
+    const contacts = await getContacts();
+    res.json({ contacts });
   } catch (error) {
-    console.log(error.message);
+    res
+      .status(500)
+      .json({ message: `Failed to get contacts with error: ${error.message}` });
   }
 };
 
-const getContactById = async (req, res) => {
-  try {
-    const contact = await getById(req.params);
+const getContactByIdController = async (req, res) => {
+  const { id } = req.params;
+  const contact = await getContactById(id);
+  if (!contact) {
+    res.status(500).json({ message: "Contact not found" });
+  }
+  res.json({ contact, message: "contact found" });
+};
 
-    if (!contact) {
-      return res.status(400).json({ message: "Contact not found" });
-    }
-    res.status(200).json({ contact });
+const addContactController = async (req, res) => {
+  const { name, email, phone, favorite } = req.body;
+
+  try {
+    await addContact({ name, email, phone, favorite });
+    res.json({ message: "Success!" });
   } catch (error) {
-    console.log(error.message);
+    res
+      .status(500)
+      .json({ message: `Can not add contact with error: ${error.message}` });
   }
 };
 
-const postContact = async (req, res) => {
-  try {
-    const newContact = await addContact(req.body);
+const updateContactController = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone } = req.body;
 
-    res.status(201).json({ newContact });
+  try {
+    const contact = await updateContactById(id, { name, email, phone });
+
+    res.json({ message: "successfully updated" });
   } catch (error) {
-    console.log(error.message);
+    res
+      .status(500)
+      .json({ message: `Failed to update with error: ${error.message}` });
   }
 };
 
-const deleteContact = async (req, res) => {
+const deleteContactController = async (req, res) => {
   try {
-    const { contacts, contact } = await removeContact(req.params);
-    if (!contact) {
-      return res.status(404).json({ message: "not found" });
-    }
-    res.status(200).json({ message: "contact deleted", contacts });
+    const { id } = req.params;
+
+    await deleteContactById(id);
+    res.json({ message: `Contact has been successfully deleted` });
   } catch (error) {
-    console.log(error.message);
+    res
+      .status(500)
+      .json({ message: `Failed to delete with error: ${error.message}` });
   }
 };
 
-const putContact = async (req, res) => {
+const updateContactStatusController = async (req, res) => {
+  const { id } = req.params;
+  const { favorite } = req.body;
+
   try {
-    if (!req.body) {
-      return res.status(400).json({ message: "missing fields" });
-    }
+    const contact = await updateContactStatusById(id, { favorite });
 
-    const updatedContact = await updateContact(req.params, req.body);
-
-    if (updatedContact) {
-      return res.status(200).json({
-        message: "contact updated",
-        contacts: {
-          contact: updatedContact,
-        },
-      });
-    } else {
-      return res.status(404).json({ message: "not found" });
+    if (!favorite) {
+      res.status(400).json({ message: "missing field favorite" });
     }
+    res.status(200).json({
+      contact: { id, favorite },
+      message: "status updated",
+    });
   } catch (error) {
-    console.log(error.message);
+    res.status(500).json({ message: "not found" });
   }
 };
 
 module.exports = {
-  getContacts,
-  getContactById,
-  postContact,
-  deleteContact,
-  putContact,
+  getContactsController,
+  getContactByIdController,
+  addContactController,
+  updateContactController,
+  deleteContactController,
+  updateContactStatusController,
 };
