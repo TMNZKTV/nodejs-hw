@@ -10,10 +10,14 @@ const {
   updateContactStatusController,
 } = require("../../src/controllers/contactsControllers");
 
+const { authMiddleware } = require("../../src/middlewares/authMiddleware");
+
 const {
   addContactValidation,
   updateContactValidation,
-} = require("../../src/validators/validators");
+} = require("../../src/middlewares/validators");
+
+router.use(authMiddleware);
 
 router.get("/", getContactsController);
 
