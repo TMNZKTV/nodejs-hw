@@ -1,15 +1,15 @@
 const { Contact } = require("../db/contactSchema");
 
-const getContacts = async () => {
-  const contacts = await Contact.find({});
+const getContacts = async (owner) => {
+  const contacts = await Contact.find({ owner });
   return contacts;
 };
 const getContactById = async (id) => {
   const contact = await Contact.findById(id);
   return contact;
 };
-const addContact = async ({ name, email, phone, favorite }) => {
-  const newContact = new Contact({ name, email, phone, favorite });
+const addContact = async ({ owner, name, email, phone, favorite }) => {
+  const newContact = new Contact({ owner, name, email, phone, favorite });
   if (!newContact.favorite) {
     (newContact.favorite = false), await newContact.save();
     return newContact;

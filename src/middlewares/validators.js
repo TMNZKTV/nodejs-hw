@@ -54,4 +54,25 @@ module.exports = {
 
     next();
   },
+
+  authValidation: (req, res, next) => {
+    // Объявляему схему валидации
+    const schema = Joi.object({
+      password: Joi.string().alphanum().min(3).max(20).required(),
+      email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
+        .required(),
+      subscription: Joi.string().alphanum().optional(),
+    });
+
+    // Проверяем данные клиента на валидацию
+    const validationResult = schema.validate(req.body);
+
+    // Если есть ошибка
+    if (validationResult.error) {
+      return res.status(400).json({ status: validationResult.error.message });
+    }
+
+    next();
+  },
 };

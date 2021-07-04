@@ -5,6 +5,8 @@ require("dotenv").config();
 const app = express();
 
 const { contactsRouter } = require("./routes/api/contactsRouter");
+const { authRouter } = require("./routes/api/authRouter");
+
 const { connectMongo } = require("./src/db/connection");
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
@@ -12,10 +14,10 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 const PORT = process.env.PORT || 8083;
 
 app.use(logger(formatsLogger));
-
 app.use(express.json());
 
 app.use("/api/contacts", contactsRouter);
+app.use("/users", authRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

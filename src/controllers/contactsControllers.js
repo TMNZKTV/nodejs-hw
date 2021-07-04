@@ -8,8 +8,10 @@ const {
 } = require("../services/contactsServices");
 
 const getContactsController = async (req, res) => {
+  const owner = req.userId;
+
   try {
-    const contacts = await getContacts();
+    const contacts = await getContacts(owner);
     res.json({ contacts });
   } catch (error) {
     res
@@ -29,9 +31,10 @@ const getContactByIdController = async (req, res) => {
 
 const addContactController = async (req, res) => {
   const { name, email, phone, favorite } = req.body;
+  const owner = req.userId;
 
   try {
-    await addContact({ name, email, phone, favorite });
+    await addContact({ owner, name, email, phone, favorite });
     res.json({ message: "Success!" });
   } catch (error) {
     res
