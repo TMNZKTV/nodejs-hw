@@ -1,18 +1,23 @@
+const path = require("path");
+const FILE_DIR = path.join("public", "avatars");
+
 const {
   signup,
   login,
   logout,
   getCurrentUser,
+  updateUserAvatar,
 } = require("../services/authServices");
 
 const signupController = async (req, res) => {
   try {
     const { password, email, subscription } = req.body;
+
     const user = await signup(password, email, subscription);
 
-    res.status(201).json({ status: "success", user: { email, subscription } });
+    res.status(201).json({ message: "success", user: { email, subscription } });
   } catch (error) {
-    res.status(409).json({ message: "email already in use" });
+    res.status(409).json({ message: `${error.message}` });
   }
 };
 
@@ -44,9 +49,23 @@ const getCurrentUserController = async (req, res) => {
   res.json({ status: "success", user });
 };
 
+const updateUserAvatarController = async (req, res) => {
+  const { authorization } = req.headers;
+
+  const { file } = req;
+
+  try {
+    const user = await updateUserAvatar(authorization, file);
+    res.status(200).json({ avatarURL: user.avatarURL });
+  } catch (error) {
+    res.status(500).json({ message: `${error.message}` });
+  }
+};
+
 module.exports = {
   signupController,
   loginController,
   logoutController,
   getCurrentUserController,
+  updateUserAvatarController,
 };

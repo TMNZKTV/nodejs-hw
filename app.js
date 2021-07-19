@@ -6,6 +6,7 @@ const app = express();
 
 const { contactsRouter } = require("./routes/api/contactsRouter");
 const { authRouter } = require("./routes/api/authRouter");
+const { avatarsRouter } = require("./routes/api/avatarsRouter");
 
 const { connectMongo } = require("./src/db/connection");
 
@@ -18,6 +19,8 @@ app.use(express.json());
 
 app.use("/api/contacts", contactsRouter);
 app.use("/users", authRouter);
+app.use("/avatars", authRouter);
+// app.use("/avatars", avatarsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
