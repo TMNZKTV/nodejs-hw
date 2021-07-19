@@ -7,6 +7,8 @@ const {
   logout,
   getCurrentUser,
   updateUserAvatar,
+  signupConfirmation,
+  signupConfirmationRefresh,
 } = require("../services/authServices");
 
 const signupController = async (req, res) => {
@@ -62,10 +64,27 @@ const updateUserAvatarController = async (req, res) => {
   }
 };
 
+const signupConfirmationController = async (req, res) => {
+  const { code } = req.params;
+
+  await signupConfirmation(code);
+};
+
+const signupConfirmationRefreshController = async (req, res) => {
+  const { email } = req.body;
+  try {
+    await signupConfirmationRefresh(email);
+    res.status(200).json({ message: "Verification link has been sent again" });
+  } catch (error) {
+    res.status(400).json({ message: "Verification has already been passed" });
+  }
+};
 module.exports = {
   signupController,
   loginController,
   logoutController,
   getCurrentUserController,
   updateUserAvatarController,
+  signupConfirmationController,
+  signupConfirmationRefreshController,
 };
