@@ -1,10 +1,16 @@
 const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
+const sha256 = require("sha256");
+
 const { User } = require("../db/userSchema");
+const { Verification } = require("../db/verificationModel");
+
 const path = require("path");
 const fs = require("fs").promises;
 const jimp = require("jimp");
 const FILE_DIR = path.join("public", "avatars");
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const signup = async (password, email, subscription) => {
   const user = new User({
@@ -12,13 +18,29 @@ const signup = async (password, email, subscription) => {
     email,
     subscription,
   });
-
   await user.save();
+
+  const code = sha256(email + process.env.JWT_SECRET);
+  const verification = new Verification({
+    userId: user._id,
+    code: sha256("hello"),
+  });
+  await verification.save();
+
+  const message = {
+    to: email,
+    from: "ezhov.kirill98@gmail.com",
+    subject: "Thank you for registering",
+    text: `Please, confirm your email adress POST https://localhost:8083/users/registration_confirmation/${code}`,
+    html: `Please, confirm your email adress POST https://localhost:8083/users/registration_confirmation/${code}`,
+  };
+  await sgMail.send(message);
+
   return user;
 };
 
 const login = async (password, email) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email, verify: true });
 
   const { _id, subscription } = user;
 
@@ -48,7 +70,7 @@ const getCurrentUser = async (authorization) => {
   });
 
   if (!user) {
-    throw new NotAuthorizedError("Invalid token.");
+    console.error("Invalid token.");
   }
 
   return user;
@@ -88,10 +110,73 @@ const updateUserAvatar = async (authorization, file) => {
     }
   }
 };
+const signupConfirmation = async (code) => {
+  const verification = await Verification.findOne({
+    code,
+    active: true,
+  });
+
+  if (!verification) {
+    console.log("Invalid or inspired confirmation code!");
+  }
+
+  const user = await User.findById(verification.userId);
+  if (!user) {
+    console.log("No user found!");
+  }
+
+  verification.true = false;
+  await verification.save();
+
+  user.confirmed = true;
+  await user.save();
+
+  const message = {
+    to: user.email,
+    from: "ezhov.kirill98@gmail.com",
+    subject: "Thank you for registering",
+    text: "Sendgrid is awesome!",
+    html: "<h1>Sendgrid is awesome!</h1>",
+  };
+  await sgMail.send(message);
+
+  return user;
+};
+
+const signupConfirmationRefresh = async (email) => {
+  if (!email) {
+    console.log("Missing required field!");
+  }
+
+  const user = await User.findOne({ email });
+  const code = sha256(email + process.env.JWT_SECRET);
+
+  if (user.confirmed === false) {
+    const verification = new Verification({
+      userId: user._id,
+      code: sha256("hello"),
+    });
+    await verification.save();
+  }
+
+  const message = {
+    to: email,
+    from: "ezhov.kirill98@gmail.com",
+    subject: "Thank you for registering",
+    text: `Please, confirm your email adress POST https://localhost:8083/users/registration_confirmation/${code}`,
+    html: `Please, confirm your email adress POST https://localhost:8083/users/registration_confirmation/${code}`,
+  };
+  await sgMail.send(message);
+
+  return user;
+};
+
 module.exports = {
   signup,
   login,
   logout,
   getCurrentUser,
   updateUserAvatar,
+  signupConfirmation,
+  signupConfirmationRefresh,
 };

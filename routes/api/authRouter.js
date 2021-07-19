@@ -13,6 +13,8 @@ const {
   logoutController,
   getCurrentUserController,
   updateUserAvatarController,
+  signupConfirmationController,
+  signupConfirmationRefreshController,
 } = require("../../src/controllers/authControllers");
 
 const { authMiddleware } = require("../../src/middlewares/authMiddleware");
@@ -35,6 +37,12 @@ router.post("/signup", authValidation, signupController);
 router.post("/login", authValidation, loginController);
 router.post("/logout", authMiddleware, logoutController);
 router.get("/current", authMiddleware, getCurrentUserController);
+router.get(
+  "/registration_confirmation/:code",
+  authMiddleware,
+  signupConfirmationController
+);
+router.post("/verify", signupConfirmationRefreshController);
 
 router.use("/", express.static(FILE_DIR));
 router.patch(
